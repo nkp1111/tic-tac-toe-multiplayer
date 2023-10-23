@@ -11,7 +11,6 @@ export default function StartGame() {
   const navigate = useNavigate();
   const startPlayingGame = (playerName, gameMode, navigate) => {
     if (gameMode === "human") {
-      console.log(playerName, gameMode)
       navigate(`/start-game-socket?name=${playerName}`)
     }
     if (gameMode === "computer") {
