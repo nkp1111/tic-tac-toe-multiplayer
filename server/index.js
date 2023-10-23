@@ -2,9 +2,18 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
+require("dotenv").config();
 
 const port = process.env.PORT || 3000;
-const clientUrls = process.env.CLIENT_URLS || ["http://localhost:5173"];
+let clientUrls = process.env.CLIENT_URLS;
+if (clientUrls) {
+  clientUrls = clientUrls.includes(",")
+    ? clientUrls.split(",")
+    : [clientUrls];
+} else {
+  clientUrls = ["http://localhost:5173"];
+}
+
 
 const app = express();
 // app.use(
