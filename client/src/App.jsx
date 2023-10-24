@@ -3,8 +3,10 @@ import { Toaster } from "react-hot-toast"
 import {
   LandingPage,
   StartGame,
+  JoinGame,
   StartGameSocket,
 } from "./pages";
+
 
 function App() {
 
@@ -15,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/" Component={LandingPage} />
           <Route path="/start-game" Component={StartGame} />
+          <Route path="/join-game" Component={JoinGame} />
           <Route path="/start-game-socket" Component={StartGameSocket} />
         </Routes>
       </Router>

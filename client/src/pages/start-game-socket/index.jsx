@@ -12,6 +12,16 @@ export default function StartGameSocket() {
   const playerName = searchParam && searchParam.length > 0 && searchParam[0].get("name")
     ? searchParam[0].get("name")
     : `Player-#${Math.floor(Math.random() * 100000)}`;
+
+  // if join game already created 
+  const joinGame = searchParam && searchParam.length > 0 && searchParam[0].get("join")
+    ? searchParam[0].get("join")
+    : false;
+  const joinGameId = searchParam && searchParam.length > 0 && searchParam[0].get("joinId")
+    ? searchParam[0].get("joinId")
+    : false;
+  console.log(joinGame, joinGameId);
+
   const [socket, setSocket] = useState(null);
   const [gameRoomId, setGameRoomId] = useState("");
   const [gameStats, setGameStats] = useState({
@@ -32,8 +42,13 @@ export default function StartGameSocket() {
       console.log('connected to server');
       toast.success("Successfully connected to server socket");
 
+      // join created game
+      if (joinGame && joinGameId) {
+        loadingToast = toast.loading("Joining game room...");
+        socket.emit("joinGameRoom", joinGameId);
+      }
       // create new game room 
-      if (!gameRoomId) {
+      else if (!gameRoomId) {
         loadingToast = toast.loading("Creating game room...")
         socket.emit("createGameRoom")
       }
@@ -59,7 +74,7 @@ export default function StartGameSocket() {
         }
       })
     })
-  }, [gameRoomId, socket])
+  }, [gameRoomId, joinGame, joinGameId, socket])
 
 
   return (
@@ -67,13 +82,15 @@ export default function StartGameSocket() {
       <div className={`${!gameStats.startGame && "bg-gray-500 opacity-50 w-full h-full fixed top-0 left-0 z-10"}`} />
 
       {/* wait until player arrive modal */}
-      <PlayerWaitModal gameRoomId={gameRoomId} gameStats={gameStats} />
+      {!joinGame && (
+        <PlayerWaitModal gameRoomId={gameRoomId} gameStats={gameStats} />
+      )}
 
       <h1 className='font-bold text-6xl sm:text-4xl text-center'>Tic Tac Toe</h1>
       <GameBoard />
 
       {/* show both players */}
-      <div className='flex flex-row sm:flex-col my-10 justify-center align-middle'>
+      <div className='flex flex-col sm:flex-row my-10 justify-center align-middle'>
         <div className='border-r-2 border-white px-10 flex gap-3'>
           <h2 className='text-lg font-semibold'>{playerName}</h2>
           <span className={`badge badge-info ${gameStats.startGame && gameStats.playerTurn ? "block" : "hidden"}`} />
