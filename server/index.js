@@ -2,7 +2,7 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
-const { createGameRoom } = require("./lib/manageGameRoom");
+const { createGameRoom, leaveGameRoom, leftGameRoom } = require("./lib/manageGameRoom");
 const { gameTask } = require("./lib/gameTask");
 require("dotenv").config();
 
@@ -45,32 +45,37 @@ io.on("connection", (socket) => {
   gameRecords.userCount += 1;
 
   // create game room
-  socket.on("createGameRoom", (response) => {
+  socket.on("createGameRoom", function (response) {
     console.log('new game room created');
     let { rooms, message } = createGameRoom(gameRecords.rooms, socket.id)
     gameRecords.rooms = rooms;
+    console.log(gameRecords);
+
     socket.emit(`${socket.id} message`, message);
   })
 
   // socket.on("joinGameRoom", (id) => {
-  //   if (Object.keys(gameRecords.rooms).includes(id)
-  //     && gameRecords.rooms[id].length > 2) {
-  //     gameRecords.rooms[id].push(socket.id);
-  //     socket.emit(`${socket.id} message`, { message: "You have joined the game room" })
-  //   }
+
   // })
 
-  socket.on("leaveGameRoom", (args, callback) => {
+  // leave game room
+  socket.on("leaveGameRoom", function (response) {
     const gameRoomId = args;
     console.log(gameRoomId)
-
+    const { rooms, message } = leaveGameRoom(gameRecords.rooms, gameRoomId, socket.id);
+    gameRecords.rooms = rooms;
+    socket.emit(`${gameRoomId} message`, message);
   })
 
   socket.on("disconnect", () => {
     console.log("User disconnected");
-    // leave game room
+    // left game
+    const { rooms, message } = leftGameRoom(gameRecords.rooms, socket.id);
+    gameRecords.rooms = rooms;
+    socket.emit(`${message.roomId} message`, message);
     // destroy game room 
     gameRecords.userCount -= 1;
+    console.log(gameRecords)
   })
 });
 

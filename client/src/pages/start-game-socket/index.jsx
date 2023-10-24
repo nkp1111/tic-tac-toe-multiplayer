@@ -8,28 +8,46 @@ export default function StartGameSocket() {
     ? searchParam[0].get("name")
     : `Player-#${Math.floor(Math.random() * 100000)}`;
   const [socket, setSocket] = useState(null);
+  const [gameRoomId, setGameRoomId] = useState("");
 
   useEffect(() => {
     const serverUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
     const mySocket = io(serverUrl, { withCredentials: true });
     setSocket(mySocket);
-    mySocket.on("connect", () => {
-      console.log('connected to server');
-    })
   }, []);
 
-
   useEffect(() => {
     if (!socket) return;
-    socket.emit("createGameRoom")
-  }, [socket]);
+    socket.on("connect", () => {
+      console.log('connected to server');
 
-  useEffect(() => {
-    if (!socket) return;
-    socket.on(`${socket.id} message`, (response) => {
-      console.log(response);
+      // create new game room 
+      if (!gameRoomId) {
+        socket.emit("createGameRoom")
+      }
+
+      // listen user message
+      socket.on(`${socket.id} message`, (response) => {
+        // create game room message
+        // console.log(response)
+        if (response.id === 1) {
+          setGameRoomId(response.roomId)
+        }
+      })
+
+      // listen game room message
+      socket.on(`${gameRoomId} message`, (response) => {
+        console.log(response);
+        console.log("game room message")
+        if (response.id === 3) {
+          console.log(response.success);
+        }
+      })
+
     })
-  }, [socket]);
+  }, [gameRoomId, socket])
+
+
   return (
     <div>
       Start Game With Socket  {playerName}
