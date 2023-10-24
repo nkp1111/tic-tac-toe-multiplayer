@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useSearchParams } from "react-router-dom";
 import { io } from "socket.io-client";
+
+let loadingToast;
 
 export default function StartGameSocket() {
   const searchParam = useSearchParams();
@@ -20,9 +23,11 @@ export default function StartGameSocket() {
     if (!socket) return;
     socket.on("connect", () => {
       console.log('connected to server');
+      toast.success("Successfully connected to server socket");
 
       // create new game room 
       if (!gameRoomId) {
+        loadingToast = toast.loading("Creating game room...")
         socket.emit("createGameRoom")
       }
 
@@ -31,6 +36,8 @@ export default function StartGameSocket() {
         // create game room message
         // console.log(response)
         if (response.id === 1) {
+          toast.dismiss(loadingToast);
+          toast.success("Game room created.")
           setGameRoomId(response.roomId)
         }
       })

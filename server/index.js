@@ -50,7 +50,6 @@ io.on("connection", (socket) => {
     let { rooms, message } = createGameRoom(gameRecords.rooms, socket.id)
     gameRecords.rooms = rooms;
     console.log(gameRecords);
-
     socket.emit(`${socket.id} message`, message);
   })
 

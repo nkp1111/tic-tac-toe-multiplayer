@@ -2,12 +2,13 @@ import PlayerName from '../../components/playerName'
 import SelectGameMode from '../../components/selectGameMode'
 import { Link, useNavigate } from "react-router-dom"
 import { FaLongArrowAltLeft, FaLongArrowAltRight } from 'react-icons/fa'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 
 export default function StartGame() {
   const [playerName, setPlayerName] = useState("Player");
-  const [gameMode, setGameMode] = useState("computer");
+  const [gameMode, setGameMode] = useState("human");
   const navigate = useNavigate();
   const startPlayingGame = (playerName, gameMode, navigate) => {
     if (gameMode === "human") {
@@ -17,6 +18,10 @@ export default function StartGame() {
       navigate(`/start-game-computer?name=${playerName}`)
     }
   }
+
+  useEffect(() => {
+    toast("Select `Player Name` and `Game Mode`");
+  }, [])
 
   return (
     <div className='flex min-h-screen flex-col items-center p-24'>
