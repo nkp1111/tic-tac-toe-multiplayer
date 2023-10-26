@@ -37,15 +37,16 @@ const io = socketIo(server, {
 });
 
 let userCount = 0;
+let rooms = {};
 
 io.on("connection", (socket) => {
   console.log("A user connected");
   userCount += 1;
   console.log(userCount);
 
-  socket.on("createGameRoom", createGameRoom)
-  socket.on("joinGameRoom", joinGameRoom)
-  socket.on("leaveGameRoom", leaveGameRoom)
+  socket.on("createGameRoom", (args) => createGameRoom(io, socket, rooms, args))
+  socket.on("joinGameRoom", (args) => joinGameRoom(io, socket, rooms, args))
+  socket.on("leaveGameRoom", () => leaveGameRoom(io, socket))
 
   socket.on("disconnect", () => {
     console.log("User disconnected");

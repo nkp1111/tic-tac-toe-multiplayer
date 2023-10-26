@@ -14,24 +14,33 @@ const getParamsValue = (searchParam) => {
   const joinGame = searchParam && searchParam.length > 0 && searchParam[0].get("join")
     ? searchParam[0].get("join")
     : false;
-  const joinGameId = searchParam && searchParam.length > 0 && searchParam[0].get("joinId")
+  const gameRoom = searchParam && searchParam.length > 0 && searchParam[0].get("joinId")
     ? searchParam[0].get("joinId")
     : false;
-  return { playerName, joinGame, joinGameId };
+  return { playerName, joinGame, gameRoom };
 }
+
+const isPlayerTurn = (playerTurn, socketId) => playerTurn === socketId;
 
 export default function StartGameSocket() {
   const searchParam = useSearchParams();
 
-  const { playerName, joinGame, joinGameId } = getParamsValue(searchParam);
-  console.log(joinGame, joinGameId);
+  const { playerName, joinGame, gameRoom: gameRoomInput } = getParamsValue(searchParam);
+  console.log(joinGame, gameRoomInput);
 
   const [socket, setSocket] = useState(null);
-  const [gameRoomId, setGameRoomId] = useState("");
+  const [gameRoom, setGameRoom] = useState("");
   const [gameStats, setGameStats] = useState({
     startGame: false,
     playerTurn: false,
-    opponentName: "",
+  });
+  const [myStats, setMyStats] = useState({
+    name: "",
+    won: 0,
+  });
+  const [rivalStats, setRivalStats] = useState({
+    name: "",
+    won: 0,
   });
 
   // set socket
@@ -64,29 +73,63 @@ export default function StartGameSocket() {
     const handleRoomMessage = (msg) => {
       console.log(msg);
     }
+    const handleCreateRoomMessage = (msg) => {
+      const { success, error, gameRoomId } = msg;
+      if (error) return toast.error(error);
+      if (loadingToast) toast.dismiss(loadingToast)
+      toast.success(success);
+      setGameRoom(gameRoomId);
+    }
+    const handleJoinRoom = (msg) => {
+      console.log(msg);
+      console.log(playerName)
+      const { success, player1, player1Won, player2, player2Won, playerTurn, error } = msg;
+      if (success) {
+        if (loadingToast) toast.dismiss(loadingToast);
+        toast.success(success);
+        let myNewStats = {}
+        let myRivalStats = {}
+        if (player1 === playerName) {
+          myNewStats = { name: player1, won: player1Won, }
+          myRivalStats = { name: player2, won: player2Won, };
+        } else {
+          myRivalStats = { name: player1, won: player1Won, }
+          myNewStats = { name: player2, won: player2Won, };
+        }
+        setMyStats(() => (myNewStats));
+        setRivalStats(() => (myRivalStats));
+        setGameStats(() => ({ startGame: true, playerTurn: isPlayerTurn(playerTurn, socket.id) }));
+        console.log(playerTurn, socket.id, playerTurn === socket.id);
+      } else {
+        toast.error(error)
+      }
+    }
 
     socket.on(`${socket.id} message`, handleUserMessage)
-    socket.on(`${gameRoomId} message`, handleRoomMessage)
+    socket.on(`${gameRoom} message`, handleRoomMessage)
+    socket.on("createRoom", handleCreateRoomMessage)
+    socket.on("joinRoom", handleJoinRoom)
 
-    return () => {
-      socket.off(`${socket.id} message`, handleUserMessage)
-      socket.off(`${gameRoomId} message`, handleRoomMessage)
-    }
-  }, [gameRoomId, socket]);
+    // return () => {
+    //   socket.off(`${socket.id} message`, handleUserMessage)
+    //   socket.off(`${gameRoom} message`, handleRoomMessage)
+    //   socket.off("createRoom", handleCreateRoomMessage)
+    // }
+  }, [gameRoom, playerName, socket]);
 
 
   // join game room or create new game room
   useEffect(() => {
     if (!socket) return;
-    if (joinGame && joinGameId) {
+    if (joinGame && gameRoomInput) {
       loadingToast = toast.loading("Joining game room...");
-      socket.emit("joinGameRoom", joinGameId);
+      socket.emit("joinGameRoom", [playerName, gameRoomInput]);
     }
-    else if (!gameRoomId) {
+    else if (!gameRoom) {
       loadingToast = toast.loading("Creating game room...")
-      socket.emit("createGameRoom")
+      socket.emit("createGameRoom", [playerName])
     }
-  }, [gameRoomId, joinGame, joinGameId, socket]);
+  }, [gameRoom, gameRoomInput, joinGame, playerName, socket]);
 
 
   return (
@@ -95,22 +138,30 @@ export default function StartGameSocket() {
 
       {/* wait until player arrive modal */}
       {!joinGame && (
-        <PlayerWaitModal gameRoomId={gameRoomId} gameStats={gameStats} />
+        <PlayerWaitModal gameRoomId={gameRoom} gameStats={gameStats} />
       )}
 
-      <h1 className='font-bold text-6xl sm:text-4xl text-center'>Tic Tac Toe</h1>
+      <h1 className='font-bold text-4xl sm:text-6xl text-center mb-10'>Tic Tac Toe</h1>
       <GameBoard />
 
       {/* show both players */}
       <div className='flex flex-col sm:flex-row my-10 justify-center align-middle'>
-        <div className='border-r-2 border-white px-10 flex gap-3'>
-          <h2 className='text-lg font-semibold'>{playerName}</h2>
-          <span className={`badge badge-info ${gameStats.startGame && gameStats.playerTurn ? "block" : "hidden"}`} />
+        <div className='px-10 flex gap-3'>
+          <div className="flex gap-10">
+            <h2 className={`text-lg font-bold`}>Player1: {myStats.name}</h2>
+            <p className='text-lg font-semibold'>Matches won: {myStats.won}</p>
+          </div>
+
+          <span className={`bg-info animate-ping h-[10px] w-[10px] rounded-full ${gameStats.startGame && gameStats.playerTurn ? "block" : "hidden"}`} />
         </div>
 
-        <div className='border-l-2 border-white px-10 flex gap-3'>
-          <h2 className='text-lg font-semibold'>{gameStats.opponentName}</h2>
-          <span className={`badge badge-info ${gameStats.startGame && !gameStats.playerTurn ? "block" : "hidden"}`} />
+        <div className='px-10 flex gap-3'>
+          <div className="flex gap-10">
+            <h2 className='text-lg'>Player2: {rivalStats.name}</h2>
+            <p className='text-lg'>Matches won: {rivalStats.won}</p>
+          </div>
+
+          <span className={`bg-info animate-ping h-[10px] w-[10px] rounded-full ${gameStats.startGame && !gameStats.playerTurn ? "block" : "hidden"}`} />
         </div>
       </div>
     </div>
