@@ -9,7 +9,7 @@ const { gameTask } = require("./gameTask");
  * @returns 
  */
 function createGameRoom(io, socket, rooms, args) {
-  const gameRoom = "1" || v4();
+  const gameRoom = v4();
   const playerName = args[0];
   socket.join(gameRoom)
   rooms[gameRoom] = { [socket.id]: { name: playerName, playerTurn: false, won: 0 } }

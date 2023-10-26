@@ -145,19 +145,19 @@ export default function StartGameSocket() {
       <GameBoard />
 
       {/* show both players */}
-      <div className='flex flex-col sm:flex-row my-10 justify-center align-middle'>
-        <div className='px-10 flex gap-3'>
-          <div className="flex gap-10">
-            <h2 className={`text-lg font-bold`}>Player1: {myStats.name}</h2>
+      <div className='flex flex-col gap-4 sm:flex-row my-10 justify-center align-middle'>
+        <div className='px-10 flex gap-3 border border-white p-2 rounded-md items-center justify-between shadow-sm shadow-orange-300'>
+          <div className="flex gap-10 sm:flex-col sm:gap-3">
+            <h2 className={`text-lg font-bold`}>{myStats.name}</h2>
             <p className='text-lg font-semibold'>Matches won: {myStats.won}</p>
           </div>
 
           <span className={`bg-info animate-ping h-[10px] w-[10px] rounded-full ${gameStats.startGame && gameStats.playerTurn ? "block" : "hidden"}`} />
         </div>
 
-        <div className='px-10 flex gap-3'>
-          <div className="flex gap-10">
-            <h2 className='text-lg'>Player2: {rivalStats.name}</h2>
+        <div className='px-10 flex gap-3 border border-white p-2 rounded-md items-center justify-between'>
+          <div className="flex gap-10 sm:flex-col sm:gap-3">
+            <h2 className='text-lg'>{rivalStats.name}</h2>
             <p className='text-lg'>Matches won: {rivalStats.won}</p>
           </div>
 
