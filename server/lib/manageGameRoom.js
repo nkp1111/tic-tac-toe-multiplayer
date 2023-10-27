@@ -12,7 +12,9 @@ function createGameRoom(io, socket, rooms, args) {
   const gameRoom = v4();
   const playerName = args[0];
   socket.join(gameRoom)
-  rooms[gameRoom] = { [socket.id]: { name: playerName, playerTurn: false, won: 0 } }
+  rooms[gameRoom] = {
+    [socket.id]: { name: playerName, playerTurn: false, won: 0, mark: "X" },
+  }
   const message = gameTask[0];
   message.success = "Game room created successfully.";
   message.gameRoomId = gameRoom;
@@ -47,11 +49,14 @@ function joinGameRoom(io, socket, rooms, args) {
   // update room 
   rooms[gameRoom] = {
     ...rooms[gameRoom],
-    [socket.id]: { name: playerName, playerTurn: turn, won: 0 }
+    [socket.id]: { name: playerName, playerTurn: turn, won: 0, mark: "O" },
+    gameBoard: Array.from("         "),
   };
 
   // manage turn
   rooms[gameRoom][player1Socket].playerTurn = !turn;
+  message.player1Mark = "X";
+  message.player2Mark = "O";
   message.player1 = rooms[gameRoom][player1Socket].name;
   message.player1Won = rooms[gameRoom][player1Socket].won;
   if (!turn) {
@@ -62,6 +67,7 @@ function joinGameRoom(io, socket, rooms, args) {
 
   message.player2 = playerName;
   message.player2Won = 0;
+  message.gameBoard = rooms[gameRoom].gameBoard;
 
   io.to(gameRoom).emit("joinRoom", message);
 }
@@ -77,9 +83,43 @@ function leftGameRoom(rooms, socketId) {
 }
 
 
+function handlePlayerChoice(io, socket, rooms, args) {
+  if (args.length < 2) {
+    // TODO: handle error 
+    return;
+  }
+  console.log(args)
+  const gameRoom = args[0];
+  const playerChoice = args[1]; // 0 - 8
+  const currentPlayer = rooms[gameRoom][socket.id];
+  let nextTurn;
+  if (!currentPlayer.playerTurn) {
+    // TODO: handle error
+    return;
+  }
+
+  rooms[gameRoom].gameBoard[+playerChoice] = currentPlayer.mark;
+  console.log(rooms[gameRoom], "before")
+  Object.keys(rooms[gameRoom]).forEach(player => {
+    if (player !== "gameBoard") {
+      rooms[gameRoom][player].playerTurn = !rooms[gameRoom][player].playerTurn;
+    } else if (player !== socket.id) {
+      nextTurn = player;
+    }
+  })
+
+  const message = {
+    gameBoard: rooms[gameRoom].gameBoard,
+    playerTurn: nextTurn,
+  }
+  io.to(gameRoom).emit("playGame", message);
+}
+
+
 module.exports = {
   createGameRoom,
   leaveGameRoom,
   leftGameRoom,
   joinGameRoom,
+  handlePlayerChoice,
 }

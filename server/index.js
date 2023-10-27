@@ -2,7 +2,7 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
-const { createGameRoom, leaveGameRoom, leftGameRoom, joinGameRoom } = require("./lib/manageGameRoom");
+const { createGameRoom, leaveGameRoom, leftGameRoom, joinGameRoom, handlePlayerChoice } = require("./lib/manageGameRoom");
 const { gameTask } = require("./lib/gameTask");
 require("dotenv").config();
 
@@ -47,6 +47,7 @@ io.on("connection", (socket) => {
   socket.on("createGameRoom", (args) => createGameRoom(io, socket, rooms, args))
   socket.on("joinGameRoom", (args) => joinGameRoom(io, socket, rooms, args))
   socket.on("leaveGameRoom", () => leaveGameRoom(io, socket))
+  socket.on("playerChoice", (args) => handlePlayerChoice(io, socket, rooms, args))
 
   socket.on("disconnect", () => {
     console.log("User disconnected");

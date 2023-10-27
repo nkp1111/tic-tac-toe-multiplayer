@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Navigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { io } from "socket.io-client";
 import GameBoard from '../../components/gameBoard';
 import PlayerWaitModal from './playerWaitModal';
+import {
+  handleCreateRoom,
+  handleJoinRoom,
+  handlePlayGame,
+  handlePlayerChoice,
+} from "../../lib"
 
 let loadingToast;
 const getParamsValue = (searchParam) => {
@@ -19,8 +25,6 @@ const getParamsValue = (searchParam) => {
     : false;
   return { playerName, joinGame, gameRoom };
 }
-
-const isPlayerTurn = (playerTurn, socketId) => playerTurn === socketId;
 
 export default function StartGameSocket() {
   const searchParam = useSearchParams();
@@ -42,6 +46,7 @@ export default function StartGameSocket() {
     name: "",
     won: 0,
   });
+  const [gameBoard, setGameBoard] = useState(new Array(9).fill(0).map(() => " "));
 
   // set socket
   useEffect(() => {
@@ -73,49 +78,20 @@ export default function StartGameSocket() {
     const handleRoomMessage = (msg) => {
       console.log(msg);
     }
-    const handleCreateRoomMessage = (msg) => {
-      const { success, error, gameRoomId } = msg;
-      if (error) return toast.error(error);
-      if (loadingToast) toast.dismiss(loadingToast)
-      toast.success(success);
-      setGameRoom(gameRoomId);
-    }
-    const handleJoinRoom = (msg) => {
-      console.log(msg);
-      console.log(playerName)
-      const { success, player1, player1Won, player2, player2Won, playerTurn, error } = msg;
-      if (success) {
-        if (loadingToast) toast.dismiss(loadingToast);
-        toast.success(success);
-        let myNewStats = {}
-        let myRivalStats = {}
-        if (player1 === playerName) {
-          myNewStats = { name: player1, won: player1Won, }
-          myRivalStats = { name: player2, won: player2Won, };
-        } else {
-          myRivalStats = { name: player1, won: player1Won, }
-          myNewStats = { name: player2, won: player2Won, };
-        }
-        setMyStats(() => (myNewStats));
-        setRivalStats(() => (myRivalStats));
-        setGameStats(() => ({ startGame: true, playerTurn: isPlayerTurn(playerTurn, socket.id) }));
-        console.log(playerTurn, socket.id, playerTurn === socket.id);
-      } else {
-        toast.error(error)
-      }
-    }
 
     socket.on(`${socket.id} message`, handleUserMessage)
     socket.on(`${gameRoom} message`, handleRoomMessage)
-    socket.on("createRoom", handleCreateRoomMessage)
-    socket.on("joinRoom", handleJoinRoom)
+    socket.on("createRoom", (msg) => handleCreateRoom(msg, loadingToast, setGameRoom))
+    socket.on("joinRoom", (msg) => handleJoinRoom(msg, socket.id, loadingToast, playerName, gameRoomInput
+      , { setGameBoard, setGameStats, setGameRoom, setRivalStats, setMyStats }))
+    socket.on("playGame", (msg) => handlePlayGame(msg, setGameBoard, setGameStats))
 
     // return () => {
     //   socket.off(`${socket.id} message`, handleUserMessage)
     //   socket.off(`${gameRoom} message`, handleRoomMessage)
     //   socket.off("createRoom", handleCreateRoomMessage)
     // }
-  }, [gameRoom, playerName, socket]);
+  }, [gameRoom, gameRoomInput, playerName, socket]);
 
 
   // join game room or create new game room
@@ -142,7 +118,13 @@ export default function StartGameSocket() {
       )}
 
       <h1 className='font-bold text-4xl sm:text-6xl text-center mb-10'>Tic Tac Toe</h1>
-      <GameBoard />
+      <GameBoard
+        gameStats={gameStats}
+        playerMark={myStats.playerMark}
+        gameBoard={gameBoard}
+        socket={socket}
+        gameRoom={gameRoom}
+        handlePlayerChoice={handlePlayerChoice} />
 
       {/* show both players */}
       <div className='flex flex-col gap-4 sm:flex-row my-10 justify-center align-middle'>
