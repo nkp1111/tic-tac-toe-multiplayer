@@ -21,9 +21,10 @@ export default function handleJoinRoom(msg, socketId, loadingToast, playerName, 
       myRivalStats = myNewStats;
       myNewStats = tempStats;
     }
+
+    if (gameRoomInput) setGameRoom(gameRoomInput);
     setMyStats(() => (myNewStats));
     setRivalStats(() => (myRivalStats));
-    setGameRoom(gameRoomInput);
     setGameBoard(() => sentGameBoard)
     setGameStats(() => ({ startGame: true, playerTurn: isPlayerTurn(playerTurn, socketId) }));
 
