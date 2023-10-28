@@ -5,6 +5,7 @@ import { io } from "socket.io-client";
 import GameBoard from '../../components/gameBoard';
 import PlayerWaitModal from './playerWaitModal';
 import {
+  getSearchParams,
   handleCreateRoom,
   handleJoinRoom,
   handlePlayGame,
@@ -12,24 +13,11 @@ import {
 } from "../../lib"
 
 let loadingToast;
-const getParamsValue = (searchParam) => {
-  const playerName = searchParam && searchParam.length > 0 && searchParam[0].get("name")
-    ? searchParam[0].get("name")
-    : `Player-#${Math.floor(Math.random() * 100000)}`;
-  // if join game already created 
-  const joinGame = searchParam && searchParam.length > 0 && searchParam[0].get("join")
-    ? searchParam[0].get("join")
-    : false;
-  const gameRoom = searchParam && searchParam.length > 0 && searchParam[0].get("joinId")
-    ? searchParam[0].get("joinId")
-    : false;
-  return { playerName, joinGame, gameRoom };
-}
 
 export default function StartGameSocket() {
   const searchParam = useSearchParams();
 
-  const { playerName, joinGame, gameRoom: gameRoomInput } = getParamsValue(searchParam);
+  const { name: playerName, join: joinGame, joinId: gameRoomInput } = getSearchParams(searchParam, ["name", "join", "joinId"]);
   console.log(joinGame, gameRoomInput);
 
   const [socket, setSocket] = useState(null);

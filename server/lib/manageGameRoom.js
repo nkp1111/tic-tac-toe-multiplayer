@@ -84,31 +84,37 @@ function leftGameRoom(rooms, socketId) {
 
 
 function handlePlayerChoice(io, socket, rooms, args) {
+  let message = gameTask[4];
   if (args.length < 2) {
-    // TODO: handle error 
+    message.error = "Game room and player choice is required";
+    socket.emit(`${socket.id} message`, message);
     return;
   }
-  console.log(args)
+  // console.log(args)
   const gameRoom = args[0];
   const playerChoice = args[1]; // 0 - 8
   const currentPlayer = rooms[gameRoom][socket.id];
   let nextTurn;
+  // console.log(rooms[gameRoom], currentPlayer)
   if (!currentPlayer.playerTurn) {
-    // TODO: handle error
+    message.error = "It is not your turn yet!";
+    socket.emit(`${socket.id} message`, message);
     return;
   }
 
   rooms[gameRoom].gameBoard[+playerChoice] = currentPlayer.mark;
-  console.log(rooms[gameRoom], "before")
+  // console.log(rooms[gameRoom], "before")
   Object.keys(rooms[gameRoom]).forEach(player => {
     if (player !== "gameBoard") {
       rooms[gameRoom][player].playerTurn = !rooms[gameRoom][player].playerTurn;
-    } else if (player !== socket.id) {
+    }
+    if (!["gameBoard", socket.id].includes(player)) {
       nextTurn = player;
     }
   })
 
-  const message = {
+  message = {
+    ...message,
     gameBoard: rooms[gameRoom].gameBoard,
     playerTurn: nextTurn,
   }

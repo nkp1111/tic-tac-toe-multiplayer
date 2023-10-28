@@ -14,5 +14,9 @@ exports.gameTask = [
   {
     id: 4,
     task: "destroy game room",
-  }
+  },
+  {
+    id: 5,
+    task: "manage player move"
+  },
 ]
