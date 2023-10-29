@@ -6,3 +6,4 @@ export { default as isPlayerTurn } from "./playerTurn";
 export { default as getSearchParams } from "./getSearchParams";
 export { default as handlePlayerLeaving } from "./handlePlayerLeaving";
 export { default as handleRoundOver } from "./handleRoundOver";
+export { default as handleRestartGame } from "./handleRestartGame";

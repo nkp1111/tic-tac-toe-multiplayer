@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-
+import toast from "react-hot-toast";
 
 // TODO: counter not working as intended
 export default function Counter({
@@ -9,16 +9,26 @@ export default function Counter({
   const [counter, setCounter] = useState(start);
 
   useEffect(() => {
-    let interval = setInterval(() => {
-      if (counter) {
-        setCounter(pre => pre - 1);
-      } else {
-        setPlayerLeft("");
-        clearInterval(interval);
-      }
-    }, 1000);
+    const loadingToast = toast.loading("Player left the game. Please restart anew...");
+    setTimeout(() => {
+      toast.dismiss(loadingToast);
+    }, 5000)
+  }, [])
 
-  }, [counter]);
+  useEffect(() => {
+    let interval = setInterval(() => {
+      setCounter(pre => pre - 1)
+    }, 1000)
+
+    if (counter <= 0) {
+      setPlayerLeft("")
+      clearInterval(interval);
+    }
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [counter])
 
 
   return (

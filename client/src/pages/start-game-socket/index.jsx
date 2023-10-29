@@ -14,6 +14,7 @@ import {
   handlePlayerChoice,
   handlePlayerLeaving,
   handleRoundOver,
+  handleRestartGame,
 } from "../../lib"
 import ConfettiCel from '../../components/confetti';
 
@@ -87,8 +88,9 @@ export default function StartGameSocket() {
       , { setGameBoard, setGameStats, setGameRoom, setRivalStats, setMyStats }))
     socket.on("playGame", (msg) => handlePlayGame(msg, socket, setGameBoard, setGameStats))
     // TODO: handle player leaving the game;
-    socket.on("playerLeft", (msg) => handlePlayerLeaving(msg, setPlayerLeft, setGameStats))
-    socket.on("roundOver", (msg) => handleRoundOver(msg, setWinningStats, socket, setMyStats, setRivalStats, setGameStats, setGameBoard))
+    socket.on("playerLeft", (msg) => handlePlayerLeaving(msg, setPlayerLeft, setGameStats));
+    socket.on("roundOver", (msg) => handleRoundOver(msg, setWinningStats, socket, setMyStats, setRivalStats, setGameStats, setGameBoard));
+    socket.on("restartGame", (msg) => handleRestartGame(msg, socket, setWinningStats, setGameBoard, setGameStats))
 
     // return () => {
     //   socket.off(`${socket.id} message`, handleUserMessage)

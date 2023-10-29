@@ -6,18 +6,19 @@ export default function RestartGame(
 ) {
   const navigate = useNavigate();
   const { winner, winnerName } = winningStats;
-  const [counter, setCounter] = useState(10);
+  const [counter, setCounter] = useState(5);
   useEffect(() => {
     let interval = setInterval(() => {
       setCounter(pre => pre - 1)
     }, 1000)
 
     if (counter <= 0) {
+      socket.emit("restartGame");
       clearInterval(interval);
     }
 
     return () => {
-      clearInterval(interval)
+      clearInterval(interval);
     }
   }, [counter])
 

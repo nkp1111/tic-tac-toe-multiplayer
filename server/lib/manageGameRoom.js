@@ -2,6 +2,9 @@
 const { v4 } = require("uuid");
 const { gameTask } = require("./gameTask");
 
+
+const blankGameBoard = Array.from("         ");
+
 /**
  * @desc Creates a new game room for 2 players 
  * @param {object} rooms - game room in which two user are connected 
@@ -53,7 +56,7 @@ function joinGameRoom(io, socket, rooms, args) {
   rooms[gameRoom] = {
     ...rooms[gameRoom],
     [socket.id]: { name: playerName, playerTurn: turn, won: 0, mark: "O" },
-    gameBoard: Array.from("         "),
+    gameBoard: blankGameBoard,
   };
 
   // manage turn
@@ -157,6 +160,32 @@ function handlePlayerChoice(io, socket, rooms, args) {
 }
 
 
+function handleGameRestart(io, socket, rooms) {
+  const message = gameTask[6];
+  const { gameRoom } = socket;
+  if (!rooms[gameRoom]) return;
+  rooms[gameRoom]["gameBoard"] = Array.from("         ");
+
+  const turn = Math.floor(Math.random() * 2) === 0;
+
+  const [player1, player2] = Object.keys(rooms[gameRoom]).filter(p => p !== "gameBoard");
+
+  rooms[gameRoom][player1].playerTurn = turn;
+  rooms[gameRoom][player2].playerTurn = !turn;
+
+  message.player1 = rooms[gameRoom][player1].name;
+  message.player1Won = rooms[gameRoom][player1].won;
+  message.player2 = rooms[gameRoom][player2].name;
+  message.player2Won = rooms[gameRoom][player2].won;
+
+  message.playerTurn = turn ? player1 : player2;
+  message.gameBoard = blankGameBoard;
+  message.success = "New round started";
+
+  io.to(gameRoom).emit("restartGame", message);
+}
+
+
 function checkWinner(gameRoom) {
   const { gameBoard } = gameRoom;
   const players = Object.keys(gameRoom).filter(p => p !== "gameBoard");
@@ -201,10 +230,10 @@ function handleGameWinner(io, socket, rooms, gameRoom, winner, rival, winningCom
   message.winner = winner;
   message.winnerName = rooms[gameRoom][winner].name;
   message.gameBoard = rooms[gameRoom].gameBoard;
-  console.log(message);
 
   io.to(gameRoom).emit("roundOver", message);
 }
+
 
 
 module.exports = {
@@ -212,4 +241,5 @@ module.exports = {
   leaveGameRoom,
   joinGameRoom,
   handlePlayerChoice,
+  handleGameRestart,
 }
