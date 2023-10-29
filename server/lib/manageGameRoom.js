@@ -150,6 +150,10 @@ function handlePlayerChoice(io, socket, rooms, args) {
     return;
   }
 
+  const emptyBoxes = rooms[gameRoom].gameBoard.filter(box => box === " ");
+  if (emptyBoxes.length === 0) {
+    handleGameRestart(io, socket, rooms, true);
+  }
 
   message = {
     ...message,
@@ -160,7 +164,7 @@ function handlePlayerChoice(io, socket, rooms, args) {
 }
 
 
-function handleGameRestart(io, socket, rooms) {
+function handleGameRestart(io, socket, rooms, tie = false) {
   const message = gameTask[6];
   const { gameRoom } = socket;
   if (!rooms[gameRoom]) return;
@@ -181,6 +185,9 @@ function handleGameRestart(io, socket, rooms) {
   message.playerTurn = turn ? player1 : player2;
   message.gameBoard = blankGameBoard;
   message.success = "New round started";
+  if (tie) {
+    message.success = "Game Tied, new round started";
+  }
 
   io.to(gameRoom).emit("restartGame", message);
 }
