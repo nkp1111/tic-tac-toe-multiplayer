@@ -199,6 +199,7 @@ function handleGameWinner(io, socket, rooms, gameRoom, winner, rival, winningCom
   message.rivalWon = rooms[gameRoom][rival].won;
   message.winningCombo = winningCombo;
   message.winner = winner;
+  message.winnerName = rooms[gameRoom][winner].name;
   message.gameBoard = rooms[gameRoom].gameBoard;
   console.log(message);
 

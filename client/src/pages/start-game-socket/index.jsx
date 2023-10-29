@@ -3,7 +3,8 @@ import toast from 'react-hot-toast';
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { io } from "socket.io-client";
 import GameBoard from '../../components/gameBoard';
-import Counter from "../../components/counter"
+import Counter from "../../components/counter";
+import RestartGame from "../../components/restartGame"
 import PlayerWaitModal from './playerWaitModal';
 import {
   getSearchParams,
@@ -12,7 +13,9 @@ import {
   handlePlayGame,
   handlePlayerChoice,
   handlePlayerLeaving,
+  handleRoundOver,
 } from "../../lib"
+import ConfettiCel from '../../components/confetti';
 
 let loadingToast;
 
@@ -37,6 +40,11 @@ export default function StartGameSocket() {
   });
   const [gameBoard, setGameBoard] = useState(new Array(9).fill(0).map(() => " "));
   const [playerLeft, setPlayerLeft] = useState("");
+  const [winningStats, setWinningStats] = useState({
+    winner: "",
+    winnerName: "",
+    winningCombo: [],
+  });
 
   // set socket
   useEffect(() => {
@@ -80,6 +88,7 @@ export default function StartGameSocket() {
     socket.on("playGame", (msg) => handlePlayGame(msg, socket, setGameBoard, setGameStats))
     // TODO: handle player leaving the game;
     socket.on("playerLeft", (msg) => handlePlayerLeaving(msg, setPlayerLeft, setGameStats))
+    socket.on("roundOver", (msg) => handleRoundOver(msg, setWinningStats, socket, setMyStats, setRivalStats, setGameStats, setGameBoard))
 
     // return () => {
     //   socket.off(`${socket.id} message`, handleUserMessage)
@@ -127,9 +136,15 @@ export default function StartGameSocket() {
           setPlayerLeft={setPlayerLeft} />
       )}
 
-      <h1 className='font-bold text-4xl sm:text-6xl text-center mb-2'>Tic Tac Toe</h1>
+      {/* show confetti  */}
+      {winningStats.winner && winningStats.winner === socket.id && <ConfettiCel won />}
+      {winningStats.winner && winningStats.winner !== socket.id && <ConfettiCel />}
+
+      {winningStats.winner && (<RestartGame socket={socket} winningStats={winningStats} />)}
+
+      <h1 className='font-bold text-4xl sm:text-5xl text-center mb-2'>Tic Tac Toe</h1>
       {/* leave game  */}
-      <div className='flex justify-end mb-10'>
+      <div className='flex justify-end mb-8'>
         <button className='btn btn-error'
           onClick={() => {
             socket.emit("leaveGameRoom", [gameRoom])
@@ -143,7 +158,8 @@ export default function StartGameSocket() {
         gameBoard={gameBoard}
         socket={socket}
         gameRoom={gameRoom}
-        handlePlayerChoice={handlePlayerChoice} />
+        handlePlayerChoice={handlePlayerChoice}
+        winningStats={winningStats} />
 
       {/* show both players */}
       <div className='flex flex-col gap-4 sm:flex-row my-10 justify-center align-middle'>
