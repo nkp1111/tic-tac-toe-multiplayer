@@ -18,6 +18,9 @@ function createGameRoom(io, socket, rooms, args) {
   const message = gameTask[0];
   message.success = "Game room created successfully.";
   message.gameRoomId = gameRoom;
+
+  // adding game room to socket
+  socket.gameRoom = gameRoom;
   io.to(gameRoom).emit("createRoom", message);
 }
 
@@ -69,17 +72,36 @@ function joinGameRoom(io, socket, rooms, args) {
   message.player2Won = 0;
   message.gameBoard = rooms[gameRoom].gameBoard;
 
+  // adding game room info to socket
+  socket.gameRoom = gameRoom;
+
   io.to(gameRoom).emit("joinRoom", message);
 }
 
 
-function leaveGameRoom(rooms, gameRoomId, socketId) {
+function leaveGameRoom(io, socket, rooms, args) {
+  let message = gameTask[2];
+  // if variables are not sent
+  if (args.length < 1) {
+    message.error = "Player name and game room is not proper";
+    socket.emit(`${socket.id} message`, message);
+    return;
+  }
 
-}
+  const gameRoom = args[0];
+  // if game room does not exists
+  if (!io.sockets.adapter.rooms.get(gameRoom)) {
+    message.error = "Game room does not exist.";
+    socket.emit(`${socket.id} message`, message);
+    return;
+  }
 
+  socket.leave(gameRoom);
+  delete rooms[gameRoom][socket.id];
+  message.success = "Player has left the game room.";
+  message.playerLeft = socket.id;
 
-function leftGameRoom(rooms, socketId) {
-
+  io.to(gameRoom).emit("playerLeft", message);
 }
 
 
@@ -93,10 +115,15 @@ function handlePlayerChoice(io, socket, rooms, args) {
   // console.log(args)
   const gameRoom = args[0];
   const playerChoice = args[1]; // 0 - 8
+  if (!rooms[gameRoom]) {
+    message.error = "Game room does not exists anymore.";
+    socket.emit(`${socket.id} message`, message);
+    return;
+  }
   const currentPlayer = rooms[gameRoom][socket.id];
   let nextTurn;
   // console.log(rooms[gameRoom], currentPlayer)
-  if (!currentPlayer.playerTurn) {
+  if (!currentPlayer || !currentPlayer.playerTurn) {
     message.error = "It is not your turn yet!";
     socket.emit(`${socket.id} message`, message);
     return;
@@ -125,7 +152,6 @@ function handlePlayerChoice(io, socket, rooms, args) {
 module.exports = {
   createGameRoom,
   leaveGameRoom,
-  leftGameRoom,
   joinGameRoom,
   handlePlayerChoice,
 }

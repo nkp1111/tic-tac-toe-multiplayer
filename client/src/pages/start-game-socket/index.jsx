@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { useSearchParams } from "react-router-dom";
 import { io } from "socket.io-client";
 import GameBoard from '../../components/gameBoard';
+import Counter from "../../components/counter"
 import PlayerWaitModal from './playerWaitModal';
 import {
   getSearchParams,
@@ -10,6 +11,7 @@ import {
   handleJoinRoom,
   handlePlayGame,
   handlePlayerChoice,
+  handlePlayerLeaving,
 } from "../../lib"
 
 let loadingToast;
@@ -18,7 +20,6 @@ export default function StartGameSocket() {
   const searchParam = useSearchParams();
 
   const { name: playerName, join: joinGame, joinId: gameRoomInput } = getSearchParams(searchParam, ["name", "join", "joinId"]);
-  console.log(joinGame, gameRoomInput);
 
   const [socket, setSocket] = useState(null);
   const [gameRoom, setGameRoom] = useState("");
@@ -35,6 +36,7 @@ export default function StartGameSocket() {
     won: 0,
   });
   const [gameBoard, setGameBoard] = useState(new Array(9).fill(0).map(() => " "));
+  const [playerLeft, setPlayerLeft] = useState("");
 
   // set socket
   useEffect(() => {
@@ -62,6 +64,9 @@ export default function StartGameSocket() {
     if (!socket) return;
     const handleUserMessage = (msg) => {
       console.log(msg);
+      const { success, error } = msg;
+      if (error) toast.error(error);
+      if (success) toast.success(success);
     }
     const handleRoomMessage = (msg) => {
       console.log(msg);
@@ -72,7 +77,9 @@ export default function StartGameSocket() {
     socket.on("createRoom", (msg) => handleCreateRoom(msg, loadingToast, setGameRoom))
     socket.on("joinRoom", (msg) => handleJoinRoom(msg, socket.id, loadingToast, playerName, gameRoomInput
       , { setGameBoard, setGameStats, setGameRoom, setRivalStats, setMyStats }))
-    socket.on("playGame", (msg) => handlePlayGame(msg, setGameBoard, setGameStats))
+    socket.on("playGame", (msg) => handlePlayGame(msg, socket, setGameBoard, setGameStats))
+    // TODO: handle player leaving the game;
+    socket.on("playerLeft", (msg) => handlePlayerLeaving(msg, setGameStats, setPlayerLeft))
 
     // return () => {
     //   socket.off(`${socket.id} message`, handleUserMessage)
@@ -96,6 +103,14 @@ export default function StartGameSocket() {
   }, [gameRoom, gameRoomInput, joinGame, playerName, socket]);
 
 
+  useEffect(() => {
+    window.addEventListener("unload", function () {
+      socket.emit("leaveGameRoom", [gameRoom]);
+      socket.disconnect();
+    });
+  }, [])
+
+
   return (
     <div className='p-4'>
       <div className={`${!gameStats.startGame && "bg-gray-500 opacity-50 w-full h-full fixed top-0 left-0 z-10"}`} />
@@ -103,6 +118,14 @@ export default function StartGameSocket() {
       {/* wait until player arrive modal */}
       {!joinGame && (
         <PlayerWaitModal gameRoomId={gameRoom} gameStats={gameStats} />
+      )}
+
+      {playerLeft && (
+        <Counter
+          message={`Player ${playerLeft} has left the game. Restarting in `}
+          start={5}
+          setGameStats={setGameStats}
+          setPlayerLeft={setPlayerLeft} />
       )}
 
       <h1 className='font-bold text-4xl sm:text-6xl text-center mb-10'>Tic Tac Toe</h1>

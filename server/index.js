@@ -46,11 +46,14 @@ io.on("connection", (socket) => {
 
   socket.on("createGameRoom", (args) => createGameRoom(io, socket, rooms, args))
   socket.on("joinGameRoom", (args) => joinGameRoom(io, socket, rooms, args))
-  socket.on("leaveGameRoom", () => leaveGameRoom(io, socket))
   socket.on("playerChoice", (args) => handlePlayerChoice(io, socket, rooms, args))
+  socket.on("leaveGameRoom", (args) => leaveGameRoom(io, socket, rooms, args))
 
   socket.on("disconnect", () => {
     console.log("User disconnected");
+    if (socket.gameRoom) {
+      leaveGameRoom(io, socket, rooms, [socket.gameRoom]);
+    }
     userCount -= 1;
   })
 });
