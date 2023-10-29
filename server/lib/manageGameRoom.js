@@ -99,7 +99,7 @@ function leaveGameRoom(io, socket, rooms, args) {
   socket.leave(gameRoom);
   delete rooms[gameRoom][socket.id];
   message.success = "Player has left the game room.";
-  message.playerLeft = socket.id;
+  message.playerLeft = rooms[gameRoom][socket.id]?.name;
 
   io.to(gameRoom).emit("playerLeft", message);
 }
@@ -140,12 +140,69 @@ function handlePlayerChoice(io, socket, rooms, args) {
     }
   })
 
+  // TODO: check winner and manage room accordingly
+  const { winner, rival, winningCombo } = checkWinner(rooms[gameRoom])
+  if (winner) {
+    handleGameWinner(io, socket, rooms, gameRoom, winner, rival, winningCombo);
+    return;
+  }
+
+
   message = {
     ...message,
     gameBoard: rooms[gameRoom].gameBoard,
     playerTurn: nextTurn,
   }
   io.to(gameRoom).emit("playGame", message);
+}
+
+
+function checkWinner(gameRoom) {
+  const { gameBoard } = gameRoom;
+  const players = Object.keys(gameRoom).filter(p => p !== "gameBoard");
+  const player1 = players[0];
+  const player2 = players[1];
+
+  const winningCombinations = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],  // Horizontal
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],  // Vertical
+    [0, 4, 8], [2, 4, 6]             // Diagonal
+  ];
+
+  let winner = false;
+  let rival = false;
+  let winningCombo;
+  for (let combo of winningCombinations) {
+    const [a, b, c] = combo;
+    // if game board has one of the winning combinations
+    // then we have the winner
+    if (gameBoard[a] !== " " && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+      winner = gameBoard[a] === gameRoom[player1].mark ? player1 : player2;
+      rival = winner === player1 ? player2 : player1;
+      winningCombo = combo;
+    }
+  }
+
+  return { winner, rival, winningCombo };
+}
+
+
+function handleGameWinner(io, socket, rooms, gameRoom, winner, rival, winningCombo) {
+  const message = gameTask[5]
+
+  rooms[gameRoom][winner].won += 1;
+  rooms[gameRoom][winner].playerTurn = false;
+  rooms[gameRoom][rival].playerTurn = false;
+
+  message.success = `We have winner for this round`;
+  message.winnerWon = rooms[gameRoom][winner].won;
+  message.rivalWon = rooms[gameRoom][rival].won;
+  message.winningCombo = winningCombo;
+  message.winner = winner;
+  message.gameBoard = rooms[gameRoom].gameBoard;
+  console.log(message);
+
+  io.to(gameRoom).emit("roundOver", message);
 }
 
 

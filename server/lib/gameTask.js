@@ -17,6 +17,10 @@ exports.gameTask = [
   },
   {
     id: 5,
-    task: "manage player move"
+    task: "manage player move",
   },
+  {
+    id: 6,
+    task: "manage player won",
+  }
 ]
