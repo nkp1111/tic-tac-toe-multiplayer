@@ -5,25 +5,20 @@ import React, { useEffect, useState } from 'react'
 export default function Counter({
   start = 5,
   message = "",
-  setGameStats,
   setPlayerLeft }) {
   const [counter, setCounter] = useState(start);
-  const handleGameStats = () => {
-    setGameStats({ startGame: false, playerTurn: "" });
-    setPlayerLeft("")
-  }
 
   useEffect(() => {
     let interval = setInterval(() => {
       if (counter) {
         setCounter(pre => pre - 1);
       } else {
-        handleGameStats();
+        setPlayerLeft("");
         clearInterval(interval);
       }
     }, 1000);
 
-  }, [counter, handleGameStats]);
+  }, [counter]);
 
 
   return (

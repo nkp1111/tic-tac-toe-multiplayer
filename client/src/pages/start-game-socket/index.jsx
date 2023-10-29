@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { io } from "socket.io-client";
 import GameBoard from '../../components/gameBoard';
 import Counter from "../../components/counter"
@@ -17,8 +17,8 @@ import {
 let loadingToast;
 
 export default function StartGameSocket() {
+  const navigate = useNavigate();
   const searchParam = useSearchParams();
-
   const { name: playerName, join: joinGame, joinId: gameRoomInput } = getSearchParams(searchParam, ["name", "join", "joinId"]);
 
   const [socket, setSocket] = useState(null);
@@ -79,7 +79,7 @@ export default function StartGameSocket() {
       , { setGameBoard, setGameStats, setGameRoom, setRivalStats, setMyStats }))
     socket.on("playGame", (msg) => handlePlayGame(msg, socket, setGameBoard, setGameStats))
     // TODO: handle player leaving the game;
-    socket.on("playerLeft", (msg) => handlePlayerLeaving(msg, setGameStats, setPlayerLeft))
+    socket.on("playerLeft", (msg) => handlePlayerLeaving(msg, setPlayerLeft, setGameStats))
 
     // return () => {
     //   socket.off(`${socket.id} message`, handleUserMessage)
@@ -117,18 +117,26 @@ export default function StartGameSocket() {
 
       {/* wait until player arrive modal */}
       {!joinGame && (
-        <PlayerWaitModal gameRoomId={gameRoom} gameStats={gameStats} />
+        <PlayerWaitModal gameRoomId={gameRoom} gameStats={gameStats} socket={socket} navigate={navigate} />
       )}
 
       {playerLeft && (
         <Counter
           message={`Player ${playerLeft} has left the game. Restarting in `}
           start={5}
-          setGameStats={setGameStats}
           setPlayerLeft={setPlayerLeft} />
       )}
 
-      <h1 className='font-bold text-4xl sm:text-6xl text-center mb-10'>Tic Tac Toe</h1>
+      <h1 className='font-bold text-4xl sm:text-6xl text-center mb-2'>Tic Tac Toe</h1>
+      {/* leave game  */}
+      <div className='flex justify-end mb-10'>
+        <button className='btn btn-error'
+          onClick={() => {
+            socket.emit("leaveGameRoom", [gameRoom])
+            navigate("/")
+          }}>Leave this Game</button>
+      </div>
+
       <GameBoard
         gameStats={gameStats}
         playerMark={myStats.playerMark}

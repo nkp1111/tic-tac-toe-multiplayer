@@ -7,7 +7,7 @@ const modalCloseStyles = "hidden"
 
 export default function PlayerWaitModal(
   // eslint-disable-next-line react/prop-types
-  { gameRoomId, gameStats: { startGame } }
+  { gameRoomId, gameStats: { startGame }, socket, navigate }
 ) {
   return (
     <div className={`text-white bg-neutral card p-4 absolute md:w-1/2 md:left-1/3 top-5 z-20 w-auto left-5 right-5 ${!startGame ? modalOpenStyles : modalCloseStyles}`}>
@@ -21,6 +21,17 @@ export default function PlayerWaitModal(
             navigator.clipboard.writeText(gameRoomId);
             toast.success(`Copied game room id \n${gameRoomId}`);
           }}>Copy</button>
+      </div>
+      {/* leave game room  */}
+      <div className='flex justify-end mb-10 absolute top-3 right-3'>
+        <button className='btn btn-error rounded-full font-bold text-lg'
+          title='Leave this Game'
+          aria-label='Leave this game'
+          onClick={() => {
+            // eslint-disable-next-line react/prop-types
+            socket.emit("leaveGameRoom", [socket.gameRoom])
+            navigate("/")
+          }}>X</button>
       </div>
     </div>
   )
