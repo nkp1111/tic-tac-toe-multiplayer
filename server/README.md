@@ -1,15 +1,26 @@
-# Tic-Tac-Toe Multiplayer
+# Tic Tac Toe - server
 
 ## Table of Contents
 
-* [Built](#built)
+* [Links](#links)
+* [Features](#features)
 * [How to use](#how-to-use)
 * [Contact](#contact)
+* [Acknowledgements](#acknowledgements)
 
-## Built
+## Links
 
-* [Server](https://github.com/nkp1111/tic-tac-toe-multiplayer/server)
-* [Client](https://github.com/nkp1111/tic-tac-toe-multiplayer/client)
+* [Live App]()
+* [GitHub](https://github.com/nkp1111/tic-tac-toe-multiplayer)
+
+## Features
+
+* handle socket connection with client
+
+## Built With
+
+* Express
+* Socket
 
 ## How To Use
 
@@ -19,17 +30,8 @@ To clone and run this application, you'll need [Git](https://git-scm.com) and [N
 # Clone this repository
 $ git clone https://github.com/nkp1111/tic-tac-toe-multiplayer.git
 
-# Go to project server directory
+# Go to project directory
 $ cd tic-tac-toe-multiplayer/server
-
-# Install dependencies
-$ npm install
-
-# Run the app
-$ npm run dev
-
-# Go to project client directory
-$ cd tic-tac-toe-multiplayer/client
 
 # Install dependencies
 $ npm install
@@ -39,7 +41,11 @@ $ npm run dev
 
 ```
 
-Open [localhost:5173](http://localhost:5173) with your browser to see the result.
+## Acknowledgements
+
+* express
+* socket.io
+* uuid
 
 ## Contact
 
