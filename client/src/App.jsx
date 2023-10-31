@@ -5,6 +5,7 @@ import {
   StartGame,
   JoinGame,
   StartGameSocket,
+  StartGameComputer,
 } from "./pages";
 
 
@@ -12,13 +13,14 @@ function App() {
 
   return (
     <>
-      <Toaster />
+      <Toaster limit={5} />
       <Router>
         <Routes>
           <Route path="/" Component={LandingPage} />
           <Route path="/start-game" Component={StartGame} />
           <Route path="/join-game" Component={JoinGame} />
           <Route path="/start-game-socket" Component={StartGameSocket} />
+          <Route path="/start-game-computer" Component={StartGameComputer} />
         </Routes>
       </Router>
     </>
