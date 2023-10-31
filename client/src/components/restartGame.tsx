@@ -13,7 +13,9 @@ export default function RestartGame(
     }, 1000)
 
     if (counter <= 0) {
-      socket.emit("restartGame");
+      if (socket) {
+        socket.emit("restartGame");
+      }
       clearInterval(interval);
     }
 
@@ -26,7 +28,7 @@ export default function RestartGame(
     <div className="p-2 rounded-4">
       <div className="container absolute top-10 sm:w-1/2 sm:left-1/4 left-0 p-4 text-center bg-neutral">
         <h3>This round is over.</h3>
-        <h4>Winner is <span className="text-success text-lg">{winnerName}</span></h4>
+        <h4>Winner is <span className="text-success text-lg">{winnerName || winner}</span></h4>
         <p>Next round will start in {counter} seconds.</p>
       </div>
 

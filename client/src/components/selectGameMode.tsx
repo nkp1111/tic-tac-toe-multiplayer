@@ -10,7 +10,7 @@ export default function SelectGameMode(
     <div className="my-6">
       <h2 className="text-3xl text-error font-semibold text-center mt-10 mb-3">Select game mode</h2>
       <div className="flex place-items-center justify-around gap-5 flex-col sm:flex-row">
-        <div className={`${gameMode === "human" ? "scale-100" : "scale-90"}`}>
+        <div className={`${gameMode === "human" ? "scale-100 text-neutral" : "scale-90 text-dark"}`}>
           <label htmlFor="human"
             className="btn btn-primary">
             <FaPersonPraying className="text-xl" />
@@ -20,7 +20,7 @@ export default function SelectGameMode(
             onChange={(e) => setGameMode(() => e.target.value)} />
         </div>
 
-        <div className={`${gameMode === "computer" ? "scale-100" : "scale-90"}`}>
+        <div className={`${gameMode === "computer" ? "scale-100 text-neutral" : "scale-90 text-dark"}`}>
           <label htmlFor="computer"
             className="btn btn-secondary">
             <MdOutlineComputer className="text-2xl" />

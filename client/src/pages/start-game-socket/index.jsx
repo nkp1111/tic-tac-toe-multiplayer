@@ -123,7 +123,7 @@ export default function StartGameSocket() {
 
 
   return (
-    <div className='p-4'>
+    <div className='p-4 sm:overflow-hidden overflow-auto'>
       <div className={`${!gameStats.startGame && "bg-gray-500 opacity-50 w-full h-full fixed top-0 left-0 z-10"}`} />
 
       {/* wait until player arrive modal */}

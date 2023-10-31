@@ -143,7 +143,7 @@ function handlePlayerChoice(io, socket, rooms, args) {
     }
   })
 
-  // TODO: check winner and manage room accordingly
+  //  check winner and manage room accordingly
   const { winner, rival, winningCombo } = checkWinner(rooms[gameRoom])
   if (winner) {
     handleGameWinner(io, socket, rooms, gameRoom, winner, rival, winningCombo);
